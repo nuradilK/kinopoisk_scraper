@@ -4,3 +4,6 @@ This code scrapes top 250 movies according to kinopoisk. When I started to write
 Add data about director and cast.
 Add ratings of director and cast.
 Add avg rating of cast.
+Clean the data
+# Important
+The scrapper is not finneshed. It needs some coreection in the code, since kinopoisk does not have some information about movies. In brief, I have to clean the data. 
