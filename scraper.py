@@ -48,7 +48,7 @@ csv_writer = csv.writer(csv_file)
 csv_writer.writerow(['movie', 'rating', 'year_released', 'budget', 'total gross', 'gross in USA', 'country', 'runtime', 'views', 'premiere'])
 
 
-for pos in range(41, 251):
+for pos in range(1, 251):
     print(pos)
     idx = "top250_place_" + str(pos)
     data = soup.find('tr', {"id" : idx})
