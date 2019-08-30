@@ -4,6 +4,49 @@ import html
 import csv
 from time import sleep
 import random
+import re
+
+def prettifyText(s):
+    s = s.rstrip()
+    s = re.sub(' +', ' ', s)
+    s = s.replace("\n", "")
+    return s
+
+def removeIrrelevantData(s, curKey):
+    if curKey == "сборы в США":
+        pattern = re.compile('eval')
+
+    if curKey == "сборы в мире":
+        pattern = re.compile('сборы')
+
+    match = pattern.finditer(s)
+    pos = 0
+    for i in match:
+        pos = i.start()
+    s = s[:pos - 1]
+    return s
+
+def reset(dictionary):
+    for key in dictionary:
+        dictionary[key] = ""
+    return dictionary
+
+def getData(source, cols):
+    table = source.find('table', {"class": "info"})
+    table_body = table.find_all('tr')
+
+    cols = reset(cols)
+    for item in table_body:
+        st = prettifyText(item.text)
+
+        for key in cols:
+            if st.find(key) != -1:
+                st = st.replace(key, "")
+                if key == "сборы в США" or key == "сборы в мире":
+                    st = removeIrrelevantData(st, key)
+
+                cols[key] = st
+    return cols
 
 headers = {
 "cache-control": "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, no-cache, private",
@@ -38,22 +81,23 @@ headers = {
 "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"
 }
 
-source = requests.get('https://www.kinopoisk.ru/top/', headers=headers).text
+columns = {"название": "", "год": "", "страна": "", "слоган": "", "режиссер": "", "сценарий": "", "продюсер": "", "оператор": "", "композитор": "", "художник": "", "монтаж": "", "жанр": "", "бюджет": "", "сборы в США": "", "сборы в мире": "", "зрители": "", "премьера (мир)": "", "релиз на DVD": "", "релиз на Blu-ray": "", "возрастзрителям,": "", "рейтинг MPAA": "", "время": ""}
+columnNames = ["название", "год", "страна", "слоган", "режиссер", "сценарий", "продюсер", "оператор", "композитор", "художник", "монтаж", "жанр", "бюджет", "сборы в США", "сборы в мире", "зрители", "премьера (мир)", "релиз на DVD", "релиз на Blu-ray", "возрастзрителям,", "рейтинг MPAA", "время"]
 
+source = requests.get('https://www.kinopoisk.ru/top/', headers=headers).text
 soup = BeautifulSoup(source, 'lxml')
 
-csv_file = open('data.csv', 'a')
+csv_file = open('data.csv', 'w')
 
-csv_writer = csv.writer(csv_file)
-csv_writer.writerow(['movie', 'rating', 'year_released', 'budget', 'total gross', 'gross in USA', 'country', 'runtime', 'views', 'premiere'])
-
+csv_writer = csv.DictWriter(csv_file, fieldnames=columnNames)
+csv_writer.writeheader()
 
 for pos in range(1, 251):
-    print(pos)
+    print("Scrapping the " + str(pos) + " movie")
     idx = "top250_place_" + str(pos)
     data = soup.find('tr', {"id" : idx})
     movie = data.find('a', {"class": "all"})
-    
+
     name = movie.text
     link = movie.get('href')
     rating = data.find('a', {"class": "continue"}).text
@@ -61,20 +105,13 @@ for pos in range(1, 251):
 
     secs = random.randrange(20,42,1)
     sleep(secs)
+
     response = requests.get(movieLink, headers=headers).text
     sp = BeautifulSoup(response, 'lxml')
-    
-    table = sp.find('table', {"class": "info"})
-    table_body = table.find_all('div')
-    runtime = table.find('td', {'id': 'runtime'}).text
-    year = (table_body[0].text.rstrip() if len(table_body) > 0 else None)
-    country = (table_body[1].text.rstrip() if len(table_body) > 1 else None)
-    budget = (table_body[2].text.rstrip() if len(table_body) > 2 else None)
-    grossInUSA = (table_body[3].text.rstrip() if len(table_body) > 3 else None)
-    totalGross = (table_body[4].text.rstrip() if len(table_body) > 4 else None)
-    views = (table_body[5].text.rstrip() if len(table_body) > 5 else None)
-    premiere = (table_body[7].text.rstrip() if len(table_body) > 7 else None)
 
-    csv_writer.writerow([name, rating, year, budget, totalGross, grossInUSA, country, runtime, views, premiere])
+    columns = getData(sp, columns)
+    columns['название'] = name
+
+    csv_writer.writerow(columns)
 
 csv_file.close()
