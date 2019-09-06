@@ -6,3 +6,5 @@ This code scrapes top 250 movies according to kinopoisk. When I started to write
   - Add avg rating of cast.
 # Important
 The scrapper is not finished yet. In the near future, I am planning to add columns avg rating of a cast and director.
+# Plans
+After compleating the scraper, I want to create a machine learning model to predict a total gross of a movie using the scrapped data to train the model. 
