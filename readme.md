@@ -6,4 +6,4 @@ Add ratings of director and cast.
 Add avg rating of cast.
 Clean the data
 # Important
-The scrapper is not finneshed. It needs some correction in the code, since kinopoisk does not have some information about movies some columns contain inccorect data. In brief, I have to clean the data. 
+The scrapper is not finished. It needs some correction in the code, since kinopoisk does not have some information about movies some columns contain inccorect data. In brief, I have to clean the data. 
